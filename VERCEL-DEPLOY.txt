@@ -1,0 +1,21 @@
+Nutrition Planner v1.3.1 - Vercel Drop deployment package
+
+IMPORTANT:
+This ZIP is intentionally FLAT at the archive root.
+After opening the ZIP, you should immediately see:
+  index.html
+  app.js
+  styles.css
+  manifest.webmanifest
+  sw.js
+  vercel.json
+  assets/
+  data/
+
+Vercel Drop:
+1. Go to https://vercel.com/drop
+2. Drag nutrition-planner-pwa-v1.3.1-vercel-root.zip onto the page.
+3. Deploy as a new project, or redeploy it to the existing project.
+4. Open the production domain.
+
+Do NOT upload the previous v1.3.0 ZIP for Vercel Drop because it contains an extra parent folder.
