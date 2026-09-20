@@ -1,11 +1,9 @@
-const CACHE = 'nutrition-planner-v132';
+const CACHE = 'nutrition-planner-v133';
 const SHELL = [
-  '/', '/index.html', '/styles.css?v=1.3.2', '/app.js?v=1.3.2', '/manifest.webmanifest',
+  '/', '/index.html', '/styles.css?v=1.3.3', '/app.js?v=1.3.3', '/manifest.webmanifest',
   '/data/starter-foods.json',
   '/assets/icon-192.png', '/assets/icon-512.png',
-  '/assets/nav-home.png', '/assets/nav-fridge.png', '/assets/nav-recommend.png', '/assets/nav-profile.png',
-  '/assets/icons/ui-analysis.svg', '/assets/icons/ui-banner.svg', '/assets/icons/ui-fridge.svg',
-  '/assets/icons/ui-leaf.svg', '/assets/icons/ui-log.svg', '/assets/icons/ui-recommend.svg'
+  '/assets/nav-home.png', '/assets/nav-fridge.png', '/assets/nav-recommend.png', '/assets/nav-profile.png'
 ];
 
 self.addEventListener('install', event => {
@@ -24,11 +22,21 @@ self.addEventListener('activate', event => {
   })());
 });
 
-async function networkWithTimeout(request, ms=1600) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), ms);
-  try { return await fetch(request, {signal: controller.signal, cache:'no-store'}); }
-  finally { clearTimeout(timer); }
+async function refreshIntoCache(request, cacheKey) {
+  try {
+    const resp = await fetch(request, {cache:'no-store'});
+    if (resp && resp.ok) {
+      const cache = await caches.open(CACHE);
+      await cache.put(cacheKey || request, resp.clone());
+    }
+    return resp;
+  } catch {
+    return null;
+  }
+}
+
+function offlineHtml() {
+  return new Response(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Nutrition Planner</title><style>body{font-family:system-ui,-apple-system,sans-serif;margin:0;background:#f6f8fb;color:#172033;display:grid;min-height:100vh;place-items:center}.box{max-width:320px;padding:28px;text-align:center}.box h2{margin:0 0 10px}.box p{color:#6b7280;line-height:1.6}.box button{margin-top:14px;border:0;border-radius:12px;background:#2f7df6;color:white;padding:12px 18px;font-size:16px}</style><div class="box"><h2>暂时无法连接</h2><p>当前网络无法访问部署地址。请检查网络后重试；如果之前成功打开过，应用会优先使用本地缓存。</p><button onclick="location.reload()">重新加载</button></div></html>`, {headers:{'Content-Type':'text/html; charset=utf-8'}});
 }
 
 self.addEventListener('fetch', event => {
@@ -37,17 +45,17 @@ self.addEventListener('fetch', event => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
+  // Navigation: cache-first, refresh in background. Do not abort after 1.6s.
+  // This avoids mobile Safari/Chrome showing “server stopped responding” on slow links.
   if (req.mode === 'navigate') {
     event.respondWith((async () => {
-      try {
-        const resp = await networkWithTimeout(req, 1600);
-        if (resp && resp.ok) {
-          const cache = await caches.open(CACHE);
-          cache.put('/index.html', resp.clone());
-          return resp;
-        }
-      } catch {}
-      return (await caches.match('/index.html')) || (await caches.match('/')) || Response.error();
+      const cached = (await caches.match('/index.html')) || (await caches.match('/'));
+      if (cached) {
+        event.waitUntil(refreshIntoCache(req, '/index.html'));
+        return cached;
+      }
+      const live = await refreshIntoCache(req, '/index.html');
+      return (live && live.ok) ? live : offlineHtml();
     })());
     return;
   }
@@ -56,25 +64,18 @@ self.addEventListener('fetch', event => {
   if (isJson) {
     event.respondWith((async () => {
       const cached = await caches.match(req, {ignoreSearch:true});
-      const refresh = fetch(req).then(async resp => {
-        if (resp && resp.ok) { const cache = await caches.open(CACHE); cache.put(req, resp.clone()); }
-        return resp;
-      }).catch(() => null);
+      const refresh = refreshIntoCache(req, req);
       if (cached) { event.waitUntil(refresh); return cached; }
-      return (await refresh) || Response.error();
+      return (await refresh) || new Response('{}', {headers:{'Content-Type':'application/json'}});
     })());
     return;
   }
 
+  // Static assets: cache-first; fetch only when absent.
   event.respondWith((async () => {
-    const cached = await caches.match(req);
+    const cached = await caches.match(req, {ignoreSearch:false});
     if (cached) return cached;
-    try {
-      const resp = await fetch(req);
-      if (resp && resp.ok) { const cache = await caches.open(CACHE); cache.put(req, resp.clone()); }
-      return resp;
-    } catch {
-      return Response.error();
-    }
+    const live = await refreshIntoCache(req, req);
+    return live || Response.error();
   })());
 });

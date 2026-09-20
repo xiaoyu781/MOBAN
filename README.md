@@ -6,3 +6,10 @@
 - 静态 JS/CSS/图标使用长期缓存，HTML 与 Service Worker 保持即时更新。
 - Vercel 根目录版，可直接部署。
 
+
+
+## v1.3.3 mobile reliability
+- Navigation is cache-first after first successful load.
+- Removed the 1.6 second navigation abort that could surface as “server stopped responding” on mobile.
+- Removed missing icon files from the Service Worker precache list.
+- Added a readable offline/connection fallback page.
