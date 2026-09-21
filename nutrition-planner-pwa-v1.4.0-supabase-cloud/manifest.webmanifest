@@ -1,0 +1,23 @@
+{
+  "name": "好好吃饭 Nutrition Planner",
+  "short_name": "好好吃饭",
+  "description": "支持个人账户云同步的营养、冰箱库存、过期提醒与食材推荐 PWA",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f3f8fd",
+  "theme_color": "#f3f8fd",
+  "icons": [
+    {
+      "src": "/assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "id": "/",
+  "scope": "/"
+}

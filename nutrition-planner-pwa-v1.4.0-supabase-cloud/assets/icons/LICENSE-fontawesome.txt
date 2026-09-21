@@ -1,0 +1,4 @@
+Font Awesome Free 6.7.2 icons used in this project.
+Copyright 2024 Fonticons, Inc.
+Icons are licensed under CC BY 4.0.
+https://fontawesome.com/license/free
