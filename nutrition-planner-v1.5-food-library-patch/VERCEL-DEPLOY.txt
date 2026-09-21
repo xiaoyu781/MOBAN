@@ -1,0 +1,32 @@
+Nutrition Planner v1.5.0 - Vercel deployment package
+
+IMPORTANT:
+This ZIP is flat at the archive root.
+After opening it you should immediately see:
+  index.html
+  app.js
+  styles.css
+  manifest.webmanifest
+  sw.js
+  vercel.json
+  api/
+  assets/
+  data/
+  SUPABASE-MIGRATION-v1.4.sql
+
+Before deploying:
+1. In Supabase -> SQL Editor, run SUPABASE-MIGRATION-v1.4.sql once.
+2. In the existing Vercel project, keep these Production environment variables:
+   NEXT_PUBLIC_SUPABASE_URL
+   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+3. Do not add the Supabase Secret Key to client code.
+
+Deploy:
+1. Upload this project to the existing Vercel project / redeploy source files.
+2. Wait until the deployment is Ready.
+3. Open the production domain and test login.
+4. On the first login, choose whether to import old local data or start empty.
+
+The static frontend reads the public Supabase config through /api/config.
+
+Food library v1.5: 800 foods / expanded categories. No new Supabase migration is required.
